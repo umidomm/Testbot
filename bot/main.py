@@ -1,26 +1,27 @@
+import os
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
+from dotenv import load_dotenv
 from api_handler.api import get_token, get_all_admins, get_all_users
 from pdf_generator.h import write_users_to_pdf
 from pdf_generator.g import analyze_pdfs, create_pdf
 
-# دستور شروع
+# بارگذاری متغیرهای محیطی از فایل .env
+load_dotenv()
+
+# دریافت توکن از فایل .env
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise ValueError("⚠️ توکن ربات در فایل .env یافت نشد!")
+
+# دستورات ربات
 def start(update: Update, context: CallbackContext):
     update.message.reply_text("سلام! به ربات مدیریت خوش آمدید.")
 
-# دستور دریافت توکن
 def fetch_token(update: Update, context: CallbackContext):
-    try:
-        username, password = context.args
-        token = get_token(username, password)
-        if token:
-            update.message.reply_text(f"توکن دریافت شد: {token}")
-        else:
-            update.message.reply_text("خطا در دریافت توکن.")
-    except ValueError:
-        update.message.reply_text("فرمت دستور صحیح نیست. مثال: /token username password")
+    update.message.reply_text("این دستور برای دریافت توکن طراحی شده است.")
 
-# دستور تولید PDF
 def generate_pdf(update: Update, context: CallbackContext):
     directory = "./pdf_generator"
     total_usages = analyze_pdfs(directory)
@@ -31,8 +32,9 @@ def generate_pdf(update: Update, context: CallbackContext):
     else:
         update.message.reply_text("هیچ داده‌ای پیدا نشد.")
 
+# اجرای اصلی
 def main():
-    updater = Updater("YOUR_TELEGRAM_BOT_TOKEN")
+    updater = Updater(BOT_TOKEN)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
