@@ -4,3 +4,4 @@ reportlab
 PyPDF2
 arabic_reshaper
 python-bidi
+python-dotenv
