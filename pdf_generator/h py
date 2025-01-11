@@ -1,0 +1,68 @@
+import os
+import json
+from datetime import datetime, timedelta
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+# مسیر لوگو و فونت
+current_dir = os.path.dirname(__file__)
+logo_path = os.path.join(current_dir, "assets", "logo.png")
+font_path = os.path.join(current_dir, "assets", "Vazir.ttf")
+
+# ثبت فونت
+pdfmetrics.registerFont(TTFont('Vazir', font_path))
+
+# استایل پاراگراف‌ها
+styles = getSampleStyleSheet()
+style_data = ParagraphStyle('DataStyle', fontName='Vazir', fontSize=12, leading=14, alignment=2)
+
+# فرمت‌دهی متن فارسی
+def format_persian_text(text):
+    reshaped_text = arabic_reshaper.reshape(text)
+    bidi_text = get_display(reshaped_text)
+    return bidi_text
+
+# تولید PDF کاربران
+def write_users_to_pdf(users, admin_name):
+    file_name = f"{admin_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    pdf = SimpleDocTemplate(file_name, pagesize=letter)
+    elements = []
+
+    # افزودن لوگو
+    try:
+        logo = Image(logo_path)
+        logo.drawHeight = 2 * inch
+        logo.drawWidth = 4 * inch
+        elements.append(logo)
+        elements.append(Spacer(1, 12))
+    except Exception as e:
+        print(f"خطا در افزودن لوگو: {e}")
+
+    # ساخت جدول
+    table_data = [['UUID', 'Start Date', 'Usage Limit (GB)', 'Package Days', 'Name']]
+    for user in users:
+        table_data.append([
+            Paragraph(user.get('key', "Unknown"), style_data),
+            Paragraph(user.get('start_date', "Unknown"), style_data),
+            Paragraph(str(user.get('data_limit_gb', "Unknown")), style_data),
+            Paragraph(str(user.get('package_days', "Unknown")), style_data),
+            Paragraph(user.get('username', "Unknown"), style_data),
+        ])
+
+    table = Table(table_data, colWidths=[2.5 * inch, 1.5 * inch, 1.5 * inch, 1.5 * inch, 2 * inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.darkgray),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Vazir'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+    pdf.build(elements)
+    print(f"PDF ساخته شد: {file_name}")
