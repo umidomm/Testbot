@@ -2,35 +2,34 @@ import os
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from dotenv import load_dotenv
-from api_handler.api import get_token, get_all_admins, get_all_users
-from pdf_generator.h import write_users_to_pdf
-from pdf_generator.g import analyze_pdfs, create_pdf
 
-# بارگذاری متغیرهای محیطی از فایل .env
+# بارگذاری متغیرهای محیطی
 load_dotenv()
-
-# دریافت توکن از فایل .env
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 if not BOT_TOKEN:
-    raise ValueError("⚠️ توکن ربات در فایل .env یافت نشد!")
+    raise ValueError("توکن ربات تنظیم نشده است!")
 
-# دستورات ربات
+# دستور شروع
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text("سلام! به ربات مدیریت خوش آمدید.")
+    update.message.reply_text("سلام! به ربات خوش آمدید. برای تنظیم آدرس پنل از دستور /set_panel استفاده کنید.")
 
-def fetch_token(update: Update, context: CallbackContext):
-    update.message.reply_text("این دستور برای دریافت توکن طراحی شده است.")
+# دستور تنظیم آدرس پنل
+def set_panel(update: Update, context: CallbackContext):
+    if len(context.args) != 1:
+        update.message.reply_text("فرمت دستور صحیح نیست. مثال: /set_panel https://your-panel.com")
+        return
+    
+    panel_url = context.args[0]
+    if not panel_url.startswith("http"):
+        update.message.reply_text("لطفاً یک آدرس معتبر وارد کنید.")
+        return
 
-def generate_pdf(update: Update, context: CallbackContext):
-    directory = "./pdf_generator"
-    total_usages = analyze_pdfs(directory)
-    if total_usages:
-        output_file = os.path.join(directory, "invoice.pdf")
-        create_pdf(total_usages, output_file)
-        update.message.reply_document(open(output_file, 'rb'))
-    else:
-        update.message.reply_text("هیچ داده‌ای پیدا نشد.")
+    # ذخیره آدرس پنل در فایل .env
+    with open(".env", "a") as env_file:
+        env_file.write(f"\nBASE_URL={panel_url}")
+    
+    update.message.reply_text(f"آدرس پنل تنظیم شد: {panel_url}")
 
 # اجرای اصلی
 def main():
@@ -38,8 +37,7 @@ def main():
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("token", fetch_token))
-    dispatcher.add_handler(CommandHandler("generate_pdf", generate_pdf))
+    dispatcher.add_handler(CommandHandler("set_panel", set_panel))
 
     updater.start_polling()
     updater.idle()
