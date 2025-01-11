@@ -22,7 +22,15 @@ echo "نصب وابستگی‌های پروژه..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 5. بررسی پوشه‌های ضروری
+# 5. درخواست توکن از کاربر
+echo "لطفاً توکن ربات تلگرام را وارد کنید:"
+read BOT_TOKEN
+
+# ذخیره توکن در فایل .env
+echo "BOT_TOKEN=$BOT_TOKEN" > .env
+echo "توکن با موفقیت در فایل .env ذخیره شد."
+
+# 6. بررسی پوشه‌های ضروری
 echo "بررسی پوشه‌های ضروری..."
 ASSETS_DIR="pdf_generator/assets"
 if [ ! -d "$ASSETS_DIR" ]; then
@@ -49,7 +57,8 @@ else
     echo "✅ فایل فونت یافت شد."
 fi
 
-# 6. پایان نصب
+# 7. پایان نصب
 echo "✅ نصب پروژه با موفقیت به پایان رسید!"
 echo "برای فعال‌سازی محیط مجازی از دستور زیر استفاده کنید:"
 echo "source venv/bin/activate"
+echo "برای اجرای ربات فایل bot/main.py را اجرا کنید."
