@@ -1,18 +1,12 @@
 import requests
-import os
-from dotenv import load_dotenv
 
-# بارگذاری متغیرهای محیطی
-load_dotenv()
-
-def get_base_url():
-    base_url = os.getenv("BASE_URL")
-    if not base_url:
-        raise ValueError("آدرس پنل تنظیم نشده است! از دستور /set_panel استفاده کنید.")
-    return base_url
+BASE_URL = "https://console.hopn.ir"
+TOKEN_ENDPOINT = "/api/admins/token"
+ADMINS_ENDPOINT = "/api/admins"
+USERS_ENDPOINT = "/api/users"
 
 def get_token(username, password):
-    url = f"{get_base_url()}/api/admins/token"
+    url = f"{BASE_URL}{TOKEN_ENDPOINT}"
     data = {"username": username, "password": password}
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     response = requests.post(url, data=data, headers=headers)
@@ -21,7 +15,7 @@ def get_token(username, password):
     return None
 
 def get_all_admins(token, page_size=100):
-    url = f"{get_base_url()}/api/admins"
+    url = f"{BASE_URL}{ADMINS_ENDPOINT}"
     headers = {"Authorization": f"Bearer {token}"}
     all_admins = []
     page = 1
@@ -38,7 +32,7 @@ def get_all_admins(token, page_size=100):
     return all_admins
 
 def get_all_users(token, page_size=100):
-    url = f"{get_base_url()}/api/users"
+    url = f"{BASE_URL}{USERS_ENDPOINT}"
     headers = {"Authorization": f"Bearer {token}"}
     all_users = []
     page = 1
